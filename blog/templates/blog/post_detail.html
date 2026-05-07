@@ -1,0 +1,84 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{{ post.title }} - Блог{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <!-- Статья -->
+        <article class="bg-white rounded shadow-sm p-4 mb-4">
+            <h1 class="mb-3">{{ post.title }}</h1>
+            
+            <div class="text-muted mb-4">
+                <small>
+                    👤 Автор: {{ post.author.username }} | 
+                    📅 Опубликовано: {{ post.created_at|date:"d.m.Y H:i" }} |
+                    {% if post.category %}🏷️ Категория: {{ post.category.name }}{% endif %}
+                </small>
+            </div>
+
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="img-fluid rounded mb-4 w-100" style="max-height: 500px; object-fit: cover;">
+            {% endif %}
+
+            <div class="post-content">
+                {{ post.content|linebreaks }}
+            </div>
+
+            {% if post.updated_at != post.created_at %}
+                <p class="text-muted mt-4">
+                    <small>✏️ Обновлено: {{ post.updated_at|date:"d.m.Y H:i" }}</small>
+                </p>
+            {% endif %}
+        </article>
+
+        <!-- Комментарии -->
+        <div class="comment-section bg-white rounded shadow-sm p-4">
+            <h3 class="mb-4">💬 Комментарии ({{ comments.count }})</h3>
+
+            <!-- Форма добавления комментария -->
+            {% if user.is_authenticated %}
+                <div class="mb-4">
+                    <h5>Оставить комментарий</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="text-danger">{{ form.content.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Отправить комментарий</button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <a href="{% url 'register' %}">Зарегистрируйтесь</a> или <a href="{% url 'admin:index' %}">войдите</a>, чтобы оставить комментарий.
+                </div>
+            {% endif %}
+
+            <!-- Список комментариев -->
+            <div class="comments-list">
+                {% for comment in comments %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">👤 {{ comment.author.username }}</h6>
+                                <small class="text-muted">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                            </div>
+                            <p class="card-text">{{ comment.content|linebreaks }}</p>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center">Комментариев пока нет. Будьте первым!</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Кнопка назад -->
+        <div class="mt-4">
+            <a href="{% url 'post_list' %}" class="btn btn-outline-primary">← Назад к списку статей</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
